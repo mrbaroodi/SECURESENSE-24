@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SECURESENSE-24 · Tactical Presence Monitor</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brandmark"><div class="rune">⟡</div><span>SS<span class="green">24</span></span></div>
+    <div class="side-caption">SYSTEM MODULES</div>
+    <button class="side-link active" data-page="monitor"><span>⌖</span> PRESENCE MONITOR <i>01</i></button>
+    <button class="side-link" data-page="dsp"><span>∿</span> SIGNAL / DSP <i>02</i></button>
+    <button class="side-link" data-page="wireless"><span>⌁</span> WIRELESS / CSI <i>03</i></button>
+    <button class="side-link" data-page="crypto"><span>◇</span> CRYPTOGRAPHY <i>04</i></button>
+    <div class="side-bottom">
+      <div class="tiny-overline">NODE PROFILE</div>
+      <strong>ESP32-S3 / LD2410B</strong>
+      <small>LOCAL USB TELEMETRY</small>
+      <small>NO CLOUD / NO INTERNET</small>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">TACTICAL INDOOR SENSING SYSTEM / PHASE 03 · LAB MODULES</div>
+        <h1>SECURESENSE<span>-24</span></h1>
+        <div class="operator-line">OPERATOR / <strong>MOHAMMED YOUNIS MAJID</strong></div>
+      </div>
+      <div class="top-meta">
+        <div><span class="tiny-overline">SYSTEM TIME</span><strong id="clock">--:--:--</strong></div>
+        <div><span class="tiny-overline">CONNECTION</span><strong id="link-label" class="dim">OFFLINE</strong></div>
+        <div><span class="tiny-overline">TELEMETRY</span><strong id="mode-label">LIVE / USB</strong></div>
+      </div>
+    </header>
+    <main>
+      <div id="notice" class="notice" hidden></div>
+      <section class="connection-bar panel">
+        <div class="connect-caption"><span class="pulsedot" id="link-dot"></span><span>LOCAL DEVICE INTERFACE</span><small>115200 BAUD · ESP32 CONSOLE</small></div>
+        <select id="com-port" aria-label="COM port"><option value="">SCAN FOR COM PORTS</option></select>
+        <button id="scan-btn" class="btn ghost">RESCAN</button>
+        <button id="connect-btn" class="btn primary">CONNECT</button>
+        <button id="disconnect-btn" class="btn ghost" disabled>DISCONNECT</button>
+      </section>
+
+      <div id="page-monitor" class="page active">
+        <div class="monitor-layout">
+          <section class="panel radar-panel">
+            <div class="panel-title"><span><b class="index">01</b> RADAR RANGE PANEL</span><span class="panel-icon">◠</span></div>
+            <div class="radar-stage">
+              <canvas id="radar-canvas"></canvas>
+              <div class="radar-note">SYMBOLIC SEMICIRCULAR VIEW / RANGE ONLY · LD2410B DOES NOT PROVIDE ANGLE</div>
+            </div>
+          </section>
+
+          <section class="panel human-panel">
+            <div class="panel-title"><span><b class="index">02</b> TARGET BODY STATUS</span><span class="panel-icon">◎</span></div>
+            <div class="human-stage body-idle" id="human-stage">
+              <div class="crosshair a"></div><div class="crosshair b"></div>
+              <svg class="human-art" viewBox="0 0 260 300" role="img" aria-label="Symbolic human silhouette, not body imaging">
+                <path class="body-shape" d="M130 26a28 28 0 1 1 0 56a28 28 0 1 1 0-56"/>
+                <path class="body-shape" d="M112 89L90 98 69 156 52 209 76 217 100 161 101 210 88 276 116 283 130 214 144 283 171 276 159 210 160 161 184 217 206 209 190 156 169 98 147 89Z"/>
+                <path d="M130 88V211M101 167H159M104 120H156" class="body-lines"/>
+              </svg>
+              <span class="stage-corner tl">◢</span><span class="stage-corner tr">◣</span><span class="stage-corner bl">◥</span><span class="stage-corner br">◤</span>
+              <div class="scan-label">LIGHT GREEN = STATIONARY / RED = MOVING</div>
+            </div>
+            <div id="presence-state" class="presence-status idle"><span class="status-emblem">◉</span> WAITING FOR RADAR</div>
+            <div class="human-foot"><span>STATE CLASSIFICATION</span><strong id="state-description">NO VALID TELEMETRY</strong></div>
+          </section>
+
+          <section class="panel telemetry-panel">
+            <div class="panel-title"><span><b class="index">03</b> LIVE RADAR TELEMETRY</span><span class="mini-status" id="radar-status">SENSOR OFFLINE</span></div>
+            <div class="stat-grid">
+              <div class="stat"><span>ESTIMATED RANGE</span><div><strong id="distance">--</strong><em>cm</em></div><small>Displayed range value</small></div>
+              <div class="stat"><span>MOTION ENERGY</span><div><strong id="moving-energy">--</strong><em>/ 100</em></div><small>Processed LD2410B indicator</small></div>
+              <div class="stat"><span>STILL ENERGY</span><div><strong id="still-energy">--</strong><em>/ 100</em></div><small>Processed LD2410B indicator</small></div>
+              <div class="stat"><span>FRAMES RECEIVED</span><div><strong id="frames">0</strong><em>frames</em></div><small>Valid parsed radar packets</small></div>
+            </div>
+            <div class="subheading"><span>LIVE RADAR ENERGY / TIME DOMAIN</span><span class="legend"><i class="line-a"></i> MOTION <i class="line-b"></i> STILL</span></div>
+            <div class="chart-wrap"><canvas id="energy-chart"></canvas><div class="chart-empty" id="chart-empty">AWAITING RADAR SIGNAL</div></div>
+            <div class="stat-footer"><span>UART 1 / 256000 BAUD</span><span>ACQUISITION → ESP32-S3 → USB → WINDOWS</span></div>
+          </section>
+
+          <section class="panel fusion-panel">
+            <div class="panel-title"><span><b class="index">06</b> DUAL-SENSOR ANALYSIS</span><span class="mini-status" id="fusion-agreement">NOT COMPARABLE</span></div>
+            <div class="fusion-grid">
+              <div class="fusion-meter"><span>RADAR DETECTOR</span><strong id="fusion-radar">WAITING</strong><small>24 GHz / human presence</small></div>
+              <div class="fusion-meter"><span>CSI MOTION CLASSIFIER</span><strong id="fusion-csi">CALIBRATING</strong><small>2.4 GHz / motion, not person count</small></div>
+              <div class="fusion-meter highlight"><span>CSI MOTION INDEX</span><strong id="fusion-score">--</strong><small>0–100 relative index, not probability</small></div>
+            </div>
+            <div class="fusion-result"><span>FUSED INTERPRETATION</span><strong id="fusion-result">WAITING FOR SENSORS</strong></div>
+            <div class="dsp-footnote">Radar provides presence and approximate range. CSI independently indicates channel variation; CSI-only activity cannot confirm that a person is present.</div>
+          </section>
+
+          <section class="panel alert-panel">
+            <div class="panel-title"><span><b class="index">04</b> ALERT CONTROL</span><span class="panel-icon">⚑</span></div>
+            <div class="alert-row"><div><strong>MOTION AUDIO ALERT</strong><small>One beep on each new motion event</small></div><button id="audio-toggle" class="btn audio active">AUDIO ON</button></div>
+            <div class="alert-row"><div><strong>SYSTEM SOUND CHECK</strong><small>Test the Windows browser speaker</small></div><button id="sound-test" class="btn ghost">TEST BEEP</button></div>
+            <div class="alert-row"><div><strong>RADAR DATA AGE</strong><small>Time since last valid radar report</small></div><span id="age-value" class="right-figure">--</span></div>
+            <div class="info-note">The radar chart is a symbolic distance panel. The target point is placed on the center line because the sensor provides range and state, not real angular coordinates.</div>
+          </section>
+
+          <section class="panel log-panel">
+            <div class="panel-title"><span><b class="index">05</b> TACTICAL EVENT LOG</span><span class="panel-icon">≡</span></div>
+            <div id="event-log" class="event-log"></div>
+          </section>
+        </div>
+      </div>
+
+      <div id="page-dsp" class="page">
+        <div class="dsp-layout">
+          <section class="panel dsp-panel wide">
+            <div class="panel-title"><span><b class="index">02</b> DIGITAL SIGNAL PROCESSING</span><span class="panel-icon">∿</span></div>
+            <div class="subheading"><span>MOTION / STILL ENERGY WAVEFORM</span><span class="legend"><i class="line-a"></i> MOTION <i class="line-b"></i> STILL</span></div>
+            <div class="chart-wrap tall"><canvas id="dsp-time-chart"></canvas><div class="chart-empty" id="dsp-time-empty">NEED MORE LIVE SAMPLES</div></div>
+            <div class="subheading"><span>MOTION ENERGY / RAW VERSUS 5-POINT MOVING AVERAGE</span></div>
+            <div class="chart-wrap tall"><canvas id="dsp-filter-chart"></canvas><div class="chart-empty" id="dsp-filter-empty">NEED MORE LIVE SAMPLES</div></div>
+            <div class="dsp-footnote">Time-domain radar energy (arbitrary 0–100 units), before and after a 5-point moving-average digital filter. These are processed metrics, not raw 24 GHz radio samples.</div>
+          </section>
+          <section class="panel dsp-panel">
+            <div class="panel-title"><span><b class="index">03</b> FFT / FREQUENCY VIEW</span><span class="panel-icon">⌁</span></div>
+            <div class="chart-wrap tall"><canvas id="dsp-fft-chart"></canvas><div class="chart-empty" id="dsp-fft-empty">NEED MORE LIVE SAMPLES</div></div>
+            <div class="dsp-footnote">FFT is computed locally from a uniformly interpolated motion-energy time series, after mean removal and a Hann window. Horizontal axis is temporal frequency (Hz), not Wi-Fi RF frequency.</div>
+          </section>
+          <section class="panel dsp-panel">
+            <div class="panel-title"><span><b class="index">04</b> SIGNAL STATISTICS</span><span class="panel-icon">#</span></div>
+            <div class="dsp-stats-grid">
+              <div class="stat mini"><span>MEAN MOTION</span><div><strong id="stat-mean">--</strong><em>/100</em></div></div>
+              <div class="stat mini"><span>STD DEV</span><div><strong id="stat-std">--</strong><em>/100</em></div></div>
+              <div class="stat mini"><span>PEAK MOTION</span><div><strong id="stat-peak">--</strong><em>/100</em></div></div>
+              <div class="stat mini"><span>SAMPLE RATE</span><div><strong id="stat-rate">--</strong><em>Hz</em></div></div>
+            </div>
+            <div class="future-tag">SOURCE A / 24 GHz RADAR ENERGY · SOURCE B / 2.4 GHz ROUTER CSI</div>
+          </section>
+          <section class="panel dsp-panel wide">
+            <div class="panel-title"><span><b class="index">06</b> CSI MOTION FEATURE / ADAPTIVE THRESHOLD</span><span class="mini-status" id="dsp-motion-label">WAITING FOR CALIBRATION</span></div>
+            <div class="subheading"><span>SMOOTHED CSI CHANGE VERSUS THRESHOLD / TIME</span></div>
+            <div class="chart-wrap tall"><canvas id="dsp-motion-chart"></canvas><div class="chart-empty" id="dsp-motion-empty">COLLECTING CSI FEATURES</div></div>
+            <div class="dsp-footnote">Robust median subcarrier differences, exponentially smoothed; the noise-adaptive threshold is learned from a quiet calibration window. Dashed = threshold. Units are normalized relative change, not RF amplitude.</div>
+          </section>
+          <section class="panel dsp-panel wide">
+            <div class="panel-title"><span><b class="index">05</b> REAL WI-FI CSI / TEMPORAL ANALYSIS</span><span class="mini-status" id="dsp-csi-status">NO CSI DATA</span></div>
+            <div class="subheading"><span>MEAN SUBCARRIER AMPLITUDE / TIME</span><span class="small-muted">ROUTER CSI · REAL SAMPLES</span></div>
+            <div class="chart-wrap tall"><canvas id="dsp-csi-time"></canvas><div class="chart-empty" id="dsp-csi-empty">WAITING FOR ROUTER CSI</div></div>
+            <div class="subheading"><span>CSI TEMPORAL FFT / HZ</span></div>
+            <div class="chart-wrap tall"><canvas id="dsp-csi-fft"></canvas></div>
+            <div class="dsp-footnote">CSI amplitude is derived from 2.4 GHz channel IQ estimates; FFT here measures slow amplitude variations over time. It is not an RF spectrum sweep and does not count people.</div>
+          </section>
+        </div>
+      </div>
+
+      <div id="page-wireless" class="page">
+        <div class="lab-layout">
+          <section class="panel lab-main">
+            <div class="panel-title"><span><b class="index">03</b> WIRELESS CHANNEL SURVEY</span><span class="mini-status">WINDOWS WLAN ADAPTER</span></div>
+            <div class="lab-toolbar"><button id="wifi-scan" class="btn primary">SCAN LOCAL WI-FI</button><span class="small-muted" id="wifi-caption">LOCAL BSSID SCAN · NOT TRUE RF SPECTRUM · NO INTERNET NEEDED</span></div>
+            <div class="channel-wrap"><canvas id="channel-chart"></canvas></div>
+            <div class="lab-label">CHANNEL 1–13 / 2.4 GHz · VISIBLE ACCESS POINTS PER CHANNEL · SIGNAL %</div>
+            <div class="wireless-table-wrap">
+              <table class="data-table"><thead><tr><th>SSID</th><th>BSSID</th><th>CHANNEL</th><th>SIGNAL</th><th>RADIO</th></tr></thead><tbody id="wireless-rows"><tr><td colspan="5">Press SCAN LOCAL WI-FI to survey networks visible to the Windows adapter.</td></tr></tbody></table>
+            </div>
+          </section>
+          <section class="panel classifier-panel">
+            <div class="panel-title"><span><b class="index">06</b> CSI MOTION CALIBRATION</span><span class="mini-status" id="motion-class-status">CSI OFFLINE</span></div>
+            <div class="classifier-summary">
+              <div class="classifier-number"><span>MOTION INDEX</span><strong id="motion-score">--</strong><small>0–100 relative units</small></div>
+              <div class="classifier-number"><span>NOISE FLOOR</span><strong id="noise-floor">--</strong><small>normalized CSI difference</small></div>
+              <div class="classifier-number"><span>TRIGGER THRESHOLD</span><strong id="motion-threshold">--</strong><small>noise adaptive</small></div>
+            </div>
+            <div class="progress-track"><div id="calibration-progress"></div></div>
+            <div class="lab-toolbar"><button class="btn primary" id="calibrate-csi">RECALIBRATE 12S</button><span id="calibration-note" class="small-muted">Keep area still at startup; then move to test.</span></div>
+            <div class="dsp-footnote">Calibration uses real received frames. Recalibrate with an empty or still room after changes to router position, antennas or environment.</div>
+          </section>
+          <section class="panel evaluation-panel">
+            <div class="panel-title"><span><b class="index">07</b> SCIENTIFIC VALIDATION / 20S PER PHASE</span><span class="mini-status" id="eval-phase">READY</span></div>
+            <div class="eval-instructions">Run three operator-labeled phases separately: EMPTY room, STILL person, MOVING person. Each phase automatically records 20 seconds. Complete calibration first.</div>
+            <div class="lab-actions eval-buttons"><button class="btn ghost" data-eval="EMPTY">START EMPTY</button><button class="btn ghost" data-eval="STILL">START STILL</button><button class="btn primary" data-eval="MOVING">START MOVING</button><button class="btn ghost" id="eval-reset">RESET RESULTS</button></div>
+            <div class="classifier-summary eval-stats">
+              <div class="classifier-number"><span>LABELED SAMPLES</span><strong id="eval-n">0</strong></div>
+              <div class="classifier-number"><span>ACCURACY</span><strong id="eval-accuracy">--</strong></div>
+              <div class="classifier-number"><span>RECALL</span><strong id="eval-recall">--</strong></div>
+              <div class="classifier-number"><span>FALSE POSITIVES</span><strong id="eval-fp">0</strong></div>
+            </div>
+            <div class="eval-instructions" id="eval-breakdown">No experiments recorded.</div>
+            <div class="lab-actions"><a class="btn ghost" href="/api/export/evaluation.csv">EXPORT VALIDATION CSV</a></div>
+            <div class="dsp-footnote">Accuracy is calculated only from trials you label; frames within a phase are correlated, not independent trials. Results are not guaranteed accuracy in other rooms.</div>
+          </section>
+          <section class="panel lab-aside">
+            <div class="panel-title"><span><b class="index">04</b> PACKET / CSI MONITOR</span></div>
+            <div class="wifi-link-status">
+              <div class="small-muted">ESP32-S3 ↔ TP-LINK ROUTER / 2.4 GHz / OFFLINE</div>
+              <div class="wifi-link-values"><strong id="wifi-link">WAITING FOR TELEMETRY</strong><span id="wifi-ip">IP: --</span><span id="wifi-channel">CH: --</span></div>
+            </div>
+            <div class="dsp-stats-grid">
+              <div class="stat mini"><span>RADAR USB FRAMES</span><div><strong id="packet-radar">0</strong></div></div>
+              <div class="stat mini"><span>RADAR SEQUENCE GAPS*</span><div><strong id="packet-gap">0</strong></div></div>
+              <div class="stat mini"><span>CSI FRAMES</span><div><strong id="packet-csi">0</strong></div></div>
+              <div class="stat mini"><span>CSI RECEIVE RATE</span><div><strong id="csi-rate">--</strong><em>samples/s</em></div></div>
+              <div class="stat mini"><span>CSI RSSI</span><div><strong id="csi-rssi">--</strong><em>dBm</em></div></div>
+            </div>
+            <div class="subheading"><span>CSI SUBCARRIER AMPLITUDES / LIVE</span><span class="mini-status" id="csi-status">NOT CONNECTED</span></div>
+            <div class="chart-wrap tall"><canvas id="csi-chart"></canvas><div class="chart-empty" id="csi-empty">NO CSI FRAMES YET</div></div>
+            <div class="subheading"><span>CSI MEAN AMPLITUDE / TIME</span></div>
+            <div class="chart-wrap"><canvas id="csi-history-chart"></canvas><div class="chart-empty" id="csi-history-empty">AWAITING CSI DATA</div></div>
+            <div class="lab-actions"><a class="btn ghost" href="/api/export/radar.csv">EXPORT RADAR CSV</a><a class="btn ghost" href="/api/export/csi.csv">EXPORT CSI CSV</a></div>
+            <p class="dsp-footnote">*Sequence gaps are missing USB telemetry sequence numbers, <strong>not measured Wi-Fi packet loss</strong>. Wi-Fi scan is from the Windows adapter; CSI frames come from ESP32-S3 and the offline router. This is not a wideband RF spectrum analyzer.</p>
+          </section>
+        </div>
+      </div>
+
+      <div id="page-crypto" class="page">
+        <div class="crypto-layout">
+          <section class="panel lab-main">
+            <div class="panel-title"><span><b class="index">04</b> CRYPTOGRAPHY LAB / AES-256-GCM</span><span class="mini-status">LOCAL EXPERIMENT</span></div>
+            <div class="crypto-form">
+              <label for="crypto-plaintext">PLAINTEXT / TEST PAYLOAD</label>
+              <textarea id="crypto-plaintext" rows="5" maxlength="90000" placeholder='{"event":"radar","state":1,"distance_cm":120}'></textarea>
+              <label for="crypto-password">SECRET PASSPHRASE · MINIMUM 8 CHARACTERS</label>
+              <input id="crypto-password" type="password" minlength="8" placeholder="Enter a passphrase for this experiment" autocomplete="off">
+              <div class="lab-actions"><button class="btn ghost" id="crypto-load-live">LOAD LIVE TELEMETRY</button><button class="btn primary" id="crypto-encrypt">ENCRYPT + AUTHENTICATE</button><button class="btn ghost" id="crypto-decrypt">DECRYPT + VERIFY</button><button class="btn ghost" id="crypto-tamper">TAMPER TEST</button></div>
+              <label for="crypto-token">AUTHENTICATED ENCRYPTED TOKEN (BASE64 ENVELOPE)</label>
+              <textarea id="crypto-token" rows="7" placeholder="Encrypted result will appear here; you can paste a saved token for verification."></textarea>
+              <div id="crypto-result" class="crypto-result">READY · LOCAL PROCESSING</div>
+            </div>
+          </section>
+          <section class="panel lab-aside">
+            <div class="panel-title"><span><b class="index">05</b> EXPERIMENT PARAMETERS</span></div>
+            <div class="crypto-facts">
+              <div><span>CIPHER</span><strong>AES-256-GCM</strong></div>
+              <div><span>AUTHENTICATION</span><strong>128-BIT GCM TAG</strong></div>
+              <div><span>NONCE</span><strong>RANDOM 96-BIT PER ENCRYPTION</strong></div>
+              <div><span>KEY DERIVATION</span><strong>PBKDF2-HMAC-SHA256</strong></div>
+              <div><span>DERIVATION ROUNDS</span><strong>250,000</strong></div>
+              <div><span>EXECUTION</span><strong>LOCAL PYTHON PROCESS</strong></div>
+            </div>
+            <div class="info-note">This page can encrypt the latest real sensor snapshot for a laboratory integrity test. Ciphertext remains local and is not used by the USB serial link. <strong>It does not claim that the existing USB serial link is encrypted.</strong> A networked encrypted telemetry channel is a separate future integration step.</div>
+          </section>
+        </div>
+      </div>
+    </main>
+    <footer><span>SECURESENSE-24 / FIELD INTERFACE v1.4</span><span>STUDENT / MOHAMMED YOUNIS MAJID · ALL PROCESSING LOCAL</span></footer>
+  </div>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Credentials: do not commit real local Wi-Fi configuration
+firmware/main/ss24_wifi_config.h
+**/.env
+.env.*
+!.env.example
+*credentials*
+*secrets*
+# ESP-IDF build output and local configuration
+**/build/
+**/sdkconfig
+**/sdkconfig.old
+**/managed_components/
+**/dependencies.lock
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+# Local measurements / potentially private RF survey data
+exports/
+measurements/
+*_radar.csv
+*_csi.csv
+*_evaluation.csv
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+# Other
+*.log

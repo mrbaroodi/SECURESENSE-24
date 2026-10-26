@@ -1,0 +1,26 @@
+name: Python and JavaScript checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Python dependencies
+        run: python -m pip install -r windows_app/requirements.txt
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Static syntax check
+        run: python -m compileall -q windows_app tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: node --check windows_app/static/app.js
+# Firmware is built locally with ESP-IDF 6.x; this workflow does not build ESP-IDF.

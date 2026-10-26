@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 915" width="1500" height="915" role="img" aria-labelledby="title desc">
+<title id="title">SECURESENSE-24 exact functional wiring</title>
+<desc id="desc">ESP32-S3 GPIO17 connects to radar RX, GPIO18 connects to radar TX; radar GND connects to ESP GND and 5V power return; regulated 5V powers LD2410B VCC. ESP32 connects to router by Wi-Fi 2.4GHz, and PC by USB.</desc>
+<defs>
+ <style>
+  .bg{fill:#0c1424}.card{fill:#15243a;stroke:#45647f;stroke-width:2.4}.h{fill:#e8f5ff;font:bold 30px Inter,Arial,sans-serif}.s{fill:#aabfd0;font:20px Inter,Arial,sans-serif}.pin{fill:#eaf4ff;font:bold 24px Inter,Arial,sans-serif}.small{fill:#a8bbcb;font:19px Inter,Arial,sans-serif}.line{fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}.t{fill:#39cee2}.w{fill:#aa8cff}.p{fill:#f8bd5d}.g{fill:#96a9b9}
+ </style>
+ <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#39cee2"/></marker>
+ <marker id="arrow-back" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#62d9ad"/></marker>
+ </defs>
+ <rect class="bg" x="0" y="0" width="1500" height="915"/>
+ <text x="70" y="80" class="h" font-size="40">SECURESENSE-24 | HARDWARE WIRING</text>
+ <text x="70" y="121" class="s">One ESP32-S3 + one HLK-LD2410B + a 2.4 GHz local router + Windows PC</text>
+ <rect class="card" x="70" y="170" width="455" height="405" rx="22"/>
+ <text x="100" y="224" class="h">ESP32-S3</text><text x="101" y="251" class="small">UART1 · 256000 baud · 3.3V logic</text>
+ <text x="110" y="302" class="pin">GPIO17  /  TX</text><text x="110" y="376" class="pin">GPIO18  /  RX</text><text x="110" y="450" class="pin">GND</text>
+ <rect class="card" x="975" y="170" width="455" height="405" rx="22"/>
+ <text x="1005" y="224" class="h">HLK-LD2410B</text><text x="1007" y="251" class="small">24 GHz human presence radar</text>
+ <text x="1015" y="302" class="pin">RX   (UART input)</text>
+ <text x="1015" y="376" class="pin">TX   (UART output)</text>
+ <text x="1015" y="450" class="pin">GND</text>
+ <text x="1015" y="523" class="pin">VCC   (regulated 5V)</text>
+ <path d="M525 295 H972" class="line" stroke="#39cee2" marker-end="url(#arrow)"/>
+ <text x="641" y="276" class="small t">ESP TX  →  Radar RX</text>
+ <path d="M975 369 H528" class="line" stroke="#62d9ad" marker-end="url(#arrow-back)"/>
+ <text x="633" y="353" class="small" fill="#62d9ad">Radar TX  →  ESP RX</text>
+ <path d="M525 443 H975" class="line" stroke="#96a9b9"/>
+ <text x="670" y="426" class="small g">COMMON GROUND</text>
+ <circle cx="918" cy="443" r="8" fill="#96a9b9"/>
+ <rect x="70" y="655" width="405" height="173" rx="20" class="card"/>
+ <text x="96" y="696" class="h" font-size="25">2.4 GHz Wi-Fi Router</text>
+ <text x="96" y="730" class="s">Local LAN · WPA2-PSK</text><text x="96" y="759" class="small">No Internet / WAN necessary</text>
+ <rect x="541" y="655" width="405" height="173" rx="20" class="card"/>
+ <text x="567" y="695" class="h" font-size="25">Windows PC</text><text x="567" y="729" class="s">Python · Offline Dashboard</text><text x="567" y="759" class="small">USB serial 115200 baud</text>
+ <rect x="1008" y="655" width="422" height="173" rx="20" class="card"/>
+ <text x="1035" y="695" class="h" font-size="25">Regulated 5V Supply</text>
+ <text x="1035" y="729" class="s">+5V → radar VCC</text><text x="1035" y="757" class="small">GND → common GND</text>
+ <path d="M975 514 H952 V632 H1010 V671" class="line" stroke="#f8bd5d"/>
+ <text x="786" y="606" class="small p">+5V POWER</text>
+ <path d="M918 443 V636 H988 V762 H1007" class="line" stroke="#96a9b9"/>
+ <path d="M278 575 V611 H130 V652" class="line" stroke="#aa8cff" stroke-dasharray="10 12"/>
+ <text x="290" y="628" class="small w">Wi-Fi CSI</text>
+ <path d="M402 575 V631 H701 V652" class="line" stroke="#82b4ff"/>
+ <text x="543" y="611" class="small" fill="#82b4ff">USB DATA</text>
+ <text x="70" y="872" class="s">Follow the labels printed on YOUR radar PCB. VCC is NOT a 3.3V pin; never apply 5V to any ESP32 GPIO.</text>
+</svg>
